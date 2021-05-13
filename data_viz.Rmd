@@ -1,0 +1,44 @@
+---
+title: "ds_with_r"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(nycflights13)
+library(knitr)
+```
+
+Visualizing Alaska Air flights:
+```{r}
+alaska_air <- flights %>% filter(carrier == "AS")
+```
+
+A `glimpse(alaska_air)` call shows that there are a handful of flights each day, and that they typically all travel from `EWR` to `SEA`. Now, to visualize the Alaska Air flights using a scatter plot, drop in to `ggplot2#ggplot()`:
+```{r}
+ggplot(
+  data=alaska_air, 
+  mapping= aes(
+    x = dep_delay,
+    y = arr_delay
+  )
+) + geom_point(alpha=0.2)
+```
+This illustrates the _grammar of geometry_ discussed in the book (its a $100 text from Springer, and I don't need a copy). I am curious if this is the same grammar used by MBostok to derive D3? Regardless, its odd that `geom_point()` is added using a `+` at the end of the `ggplot()` definition. I expected this to be an argument rather than joining two different data structures together... 
+
+Futher reading shows that the `geom_point` object is a distinct layer in the visualization. `ggplot2` works by constructing layers similar to how d3 does, so the `+` is actually adding a new layer on top of the basic struture defined via `ggplot()`. This suggests I could stack arbitrry layers on top of one another. I wonder if multiple ggplots can be stacked?
+
+```{r}
+ggplot(data=alaska_air, mapping=aes(x = arr_delay, y = dep_delay)) + 
+geom_point() + 
+ggplot(data=alaska_air, mapping=aes(x = air_time, y = distance)) + 
+geom_bar()
+```
+Nope, can't stack multiple `ggplot()` objects with each other.
+
+Considering the `weather` dataset, the delays could be caused by strong winds, heavy precipitation, and/or very low visibility. Combining two or more of these is expected to almost definitiely lead to delays. Having not yet joined the two datasets and examined the correlations, I'm unwilling to make a guess about the thresholds that define "strong", "heavy", or "very low", although I suspect that there is some sort of exponential function at work.
+
+It is possible to alter the location of points in a visualization using `geom_jitter(height=<int>, width=<int>)`. This is a scatter visualization that randomly bumps points by some random amount in the range 0-> threshold, where threshold comes from the `height` and `width` arguments.
+```{r}
+
+```

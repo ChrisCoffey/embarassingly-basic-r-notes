@@ -1,0 +1,43 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This notebook follow along with the early examples from https://moderndive.com/1-getting-started.html. The plan is to learn enough R to be productive and provide useful reviews at work.
+
+Tidyverse libraries
+```{r}
+library(tidyverse)
+library(nycflights13)
+library(knitr)
+```
+
+Let's have a look at what's in the flights data
+```{r}
+flights
+```
+Timestamps, both actual and scheduled, delays between them, details about the in-air flight, as well as some categorical information like carrier, flight number, and start+end airports. This is a `tibble`, which is a specific type of dataframe in R that seems like it allows navigation in a worksheet or console like above.
+
+```{r}
+glimpse(flights)
+```
+Appears to transpose the data without any sampling or shuffling. This gives me a pretty good idea what the data looks like, as well as each column's datatype.
+```{r}
+kable(airlines)
+```
+`kable()` pretty-prints a dataframe. It seems to actually render markup when in an `rmd` file.
+
+Individual fields (columns) of a dataframe can be accessed using the `$` operator. For example:
+
+```{r}
+airlines$na
+```
+
+Get help via `?flights`, or `?dplyr`. The `?` operator accesses the help docs for a given command/object.
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
