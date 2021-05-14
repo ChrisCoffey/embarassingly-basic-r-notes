@@ -40,5 +40,27 @@ Considering the `weather` dataset, the delays could be caused by strong winds, h
 
 It is possible to alter the location of points in a visualization using `geom_jitter(height=<int>, width=<int>)`. This is a scatter visualization that randomly bumps points by some random amount in the range 0-> threshold, where threshold comes from the `height` and `width` arguments.
 ```{r}
+early_jan_weather <- weather %>% 
+  filter(month == 1 & day <= 15 & origin == "EWR")
 
+ggplot(data=early_jan_weather, mapping=aes(x = time_hour, y = temp)) +
+  geom_line()
 ```
+
+Line graph of precipitation in Newark in ealry january
+```{r}
+ggplot(data=early_jan_weather, mapping = aes(x = time_hour, y = precip)) + 
+  geom_line()
+```
+
+Experiment with plotting a distribution for a single numeric (measurement) variable:
+```{r}
+ggplot(data=weather, mapping = aes(x = temp, y = 0)) + geom_jitter(alpha = 0.1, height=0.1)
+```
+That's pretty interesting to illustrate the density - clusters between 30 & 80 - but it doesn't say much about how large the buckets are, only that there would be "a lot" of data in those buckets. A histogram is a better solution. It looks somewhat normally distributed around 60, although it also could be multi-modal around 45 and 65. That makes sense because temperatures will bottom in the winter and peak in the summer, but need to pass through both of those temperatures on their way in and out of the maxima. This is actually a really interesting principle to think about. Does it generalize and apply anywhere else in life?
+```{r}
+ggplot(data=weather, mapping = aes(x = temp)) + 
+  geom_histogram(binwidth= 5, color = "pink") + 
+  facet_wrap(~ month)
+```
+
