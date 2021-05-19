@@ -1,0 +1,81 @@
+---
+title: "Simple Linear Regression"
+output: html_notebook
+---
+```{r}
+library(tidyverse)
+library(moderndive)
+library(skimr)
+library(gapminder)
+```
+In this notebook I explore simple linear regression. SLR is linear regression in a single variable, predicting a numerical output variable.
+
+Let's start with some EDA to understand the shape of the data.
+```{r}
+evals_beauty <- evals %>%
+  select(ID, score, bty_avg, age)
+glimpse(evals_beauty)
+
+evals_beauty %>%
+   select(score, bty_avg, age) %>%
+  skim()
+
+evals_beauty %>%
+  get_correlation(formula = score ~ bty_avg)
+
+ggplot(evals_beauty, mapping = aes(x = score, y = bty_avg)) +
+  geom_jitter() + 
+  labs(x = "Score",
+       y= "Beauty",
+       title = "Score and Beauty in teachng")
+```
+You can add a fit line to visualizations using the technique of choice. The technique is provided as a string of the function name.
+```{r}
+ggplot(evals_beauty, mapping = aes(y = score, x = bty_avg)) +
+  geom_jitter() + 
+  labs(y = "Score",
+       x= "Beauty",
+       title = "Score and Beauty in teachng") +
+  geom_smooth(method="lm")
+```
+The line plotted above is called a regression line. It illustrates the impact that a change in beauty has on score. In this case, the slope is quite low, as fitting the low positive correlation between beauty and score.To determine a predicted score based on the beauty_avg, let's run a linear regresson.
+```{r}
+model <- lm(score ~ bty_avg, evals)
+get_regression_table(model)
+```
+The regression table above shows that the majority of the score comes from the intercept rather than the effect of beauty. That fits with the low correlation found earlier.The `lm` function trains a linear model based on the provied forumla. 
+
+Open question: How to train a model in multiple variables?
+
+Same analysis but for age:
+```{r}
+age_model <- lm(score ~ age, evals)
+get_regression_table(age_model)
+get_regression_points(model)
+```
+Flipping over to look at regression with a single categorical variable. Open question: How to mix categorical and numerical variables together in a regression?
+
+```{r}
+library(gapminder)
+
+gapminder2007 <- gapminder %>%
+  filter(year == 2007) %>%
+  select(- year)
+
+glimpse(gapminder2007)
+gapminder2007 %>% sample_n(10)
+skim(gapminder2007)
+
+ggplot(gapminder2007, mapping=aes(x=lifeExp)) +
+  geom_histogram(binwidth = 5) +
+  labs(title="Life expectancies") +
+  facet_wrap(~ continent)
+
+
+ggplot(gapminder2007, mapping=aes(x=continent, y= lifeExp)) +
+  geom_boxplot()
+
+ggplot(gapminder2007, mapping=aes(x=continent, y=gdpPercap)) + 
+  geom_boxplot()
+```
+

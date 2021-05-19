@@ -63,4 +63,24 @@ ggplot(data=weather, mapping = aes(x = temp)) +
   geom_histogram(binwidth= 5, color = "pink") + 
   facet_wrap(~ month)
 ```
+```{r}
+ggplot(data=weather, mapping=aes(x = factor(month), y = temp)) + 
+  geom_boxplot()
+```
+The box represents the IQR (inter-quartile range), bars (whiskers) are values between IQR & 1.5xIQR, and finally the single points are outliers.
+
+For graphing the distribution of categorical variables, use `geom_bar()` or `geom_col()` depending on whether the data is pre-counted or not.
+```{r}
+ggplot(data=flights, mapping = aes(x = origin)) + 
+  geom_bar() + 
+  facet_wrap(~ carrier)
+```
+Another way to illustrate the above per-carrier flight numbers is with stacked and side-by-side bar charts. The default behavior is to stack bars, but for side-by-side, adding `position=dodge` to the geometry layer splits out the bars.
+```{r}
+ggplot(data=flights, mapping=aes(x=carrier, fill=origin)) +
+  geom_bar()
+
+ggplot(data=flights, mapping=aes(x=carrier,fill=origin)) + 
+  geom_bar(position = position_dodge(preserve="single"))
+```
 

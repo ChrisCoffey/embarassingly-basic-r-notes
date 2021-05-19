@@ -1,0 +1,106 @@
+---
+title: "Data wrangling"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(nycflights13)
+```
+
+Flights to Portland
+```{r}
+portland_flights <- flights %>%
+  filter(dest == "PDX")
+
+pdx_flight_summary <- portland_flights %>%
+  summarize(mean= mean(dep_delay, na.rm = TRUE), std_dev=sd(dep_delay, na.rm = TRUE))
+pdx_flight_summary
+
+weather %>%
+  summarize(foob = IQR(temp, na.rm = TRUE))
+```
+The above example shows several things. First, the lists passed to a function like `summarize` are keyword lists, but there aren't actually formal parameters to the function. Instead it takes the list and uses the name of the keyword as the column name. The other thing of interest is how, by default, most tidyverse functions (and presumably R functions) will return `NA` if there is even a single `NA` in the data. This is exactly what SQL does with nulls - along with most programming languages - and is worth keeping in mind when wrangling data.
+
+`Summarize` works on rows, and each row needs a field w/ the same label that the summary function expects. This means you can't pipe two summarize calls into each other unless the second uses columns defined in the first. It would also be a nonsensical operation because summarize reduces down to a single row, so there's nothing for the following call to aggregate. `group_by` on the other hand performs per-category/group aggregation just like in SQL or other programming languages.
+
+
+```{r}
+airport_temps <- weather %>%
+  group_by(origin) %>%
+  summarize(avg = mean(temp, na.rm = TRUE), 
+            std_dev = sd(temp, na.rm=TRUE), 
+            max = max(temp, na.rm=TRUE),
+            min = min(temp, na.rm=TRUE),
+            iqr = IQR(temp, na.rm=TRUE), 
+            count = n()) 
+airport_temps
+
+```
+`group_by` doesn't change the data frame, only the grouping information about the frame. Summarize actually changes the frame and returns a new one. This is an important distinction. I talked about this above briefly - and incorrectly - when discussing passing through column names between summarize functions. What actually happens is that a new data frame is created by summarize and returned. That frame has whatever columns are defined in summarize, and as a data frame it can be used with any other functions that take a frame.
+
+`ungroup` remove the grouping from a dataframe. Because `group_by` only adds metadata, `ungroup` only needs to strip off the metadata. This is why its possible to recover the original shape of the data after a grouping operation in R. Very interesting concept to keep the data the same and annotate with metadata. There can only be a single grouping attatched to a data frame, but it can be arbitrarily complicated - including multiple columns, basically.
+
+`mutate` modifies a row by adding or modifying an existing keyword in the indexed list. If the keyword is new, a new "column" is added to the data frame. But what about when the keyword matches an existing keyword? The example below - `celsius_weather` - shows that the existing keyword is overwritten. This means R is a mutable functional language, although many of the APIs and endpoints are immutable. For example, this operation creates a new data frame rather than modifying the single copy of `weather` loaded from `nycflights13`.
+
+```{r}
+celsius_weather = weather %>%
+  mutate(
+    temp = (temp -32)/1.8)
+celsius_weather
+```
+Here's an example of adding a column computed from multiple other columns:
+```{r}
+gainers <- flights %>%
+  mutate(gain = dep_delay - arr_delay) 
+
+ggplot(gainers, mapping= aes(x = gain)) + 
+  geom_histogram()
+```
+Sorting and arranging rows in the data frame is accomplished using the aptly-named `sort` and `arrange` functions.
+```{r}
+flights_by_dest <- flights %>%
+  group_by(dest) %>%
+  summarize(num_flights = n())
+
+flights_by_dest %>% 
+  arrange(desc(num_flights))
+```
+
+Nothing too interesting with arranging rows. But what about linking up the weather and flight data to predict delays based on precipitation? That could be an interesting challenge. Or gain based on the specific plane!
+
+```{r}
+gainers %>% 
+  inner_join(planes, by = "tailnum") %>%
+  group_by(engine) %>%
+  summarize(max = max(gain, na.rm = TRUE),
+            min = min(gain, na.rm = TRUE),
+            mean = mean(gain, na.rm = TRUE),
+            std_dev = sd(gain, na.rm=TRUE),
+            num_flights = n())
+```
+Why does `join`'s `by` parameter require a string? That's a rather unpleasent extra two keys I need to type. 
+
+Using `top_n` you can apply a Limit to the list.
+```{r}
+flights %>%
+  inner_join(airports, by = c("dest" = "faa")) %>%
+  group_by(name) %>%
+  summarize(mean = mean(arr_delay, na.rm = TRUE), count=n(), max=max(arr_delay, nai.rm=TRUE)) %>%
+  arrange(desc(mean)) %>%
+  top_n(n=5, wt=mean)
+  
+```
+Calculating the number of seat miles for each airline that flew out of NYC
+```{r}
+flight_capacity = flights %>%
+    inner_join(planes, by = "tailnum") %>%
+    mutate(seat_miles = distance * seats) %>%
+    group_by(carrier) %>%
+    summarize(total_seat_miles = sum(seat_miles, na.rm=TRUE), 
+              num_flights = n()) %>%
+    arrange(desc(total_seat_miles))
+
+flight_capacity
+```
+

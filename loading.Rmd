@@ -1,0 +1,52 @@
+---
+title: "Titanic"
+output: html_notebook
+---
+```{r}
+library(tidyverse)
+library(fivethirtyeight)
+library(nycflights13)
+
+dem_score <- read_csv("https://moderndive.com/data/dem_score.csv")
+dem_score
+```
+
+
+To visualize the drinks by country, split each country into multiple rows
+```{r}
+drinks_smaller <- drinks %>%
+  filter(country %in% c("USA", "China", "Italy", "Saudi Arabia")) %>%
+  select(- total_litres_of_pure_alcohol) %>%
+  rename("beer" = "beer_servings",
+         "spirits" = "spirit_servings",
+         "wine" = "wine_servings")
+  
+
+
+tidy_drinks <- drinks_smaller %>%
+  pivot_longer(names_to = "type",
+               values_to = "servings",
+               cols = -country)
+tidy_drinks
+
+ggplot(tidy_drinks, mapping= aes(x=country, y=servings, fill=type)) +
+  geom_col(position="dodge")
+```
+Revisiting democracy data, let's plot out the change in democracy levels in Guatemal over the past 40 years.
+```{r}
+guatemala_score <- dem_score %>%
+  filter(country == "Guatemala") %>%
+  select(-country) %>%
+  pivot_longer(names_to = "year",
+               values_to = "score",
+               cols = everything())
+
+ggplot(guatemala_score, mapping= aes(x=year, y= score)) +
+  geom_point()
+
+dem_score_tidy <- dem_score %>%
+  pivot_longer(names_to = "year",
+               values_to = "score",
+               cols= -country)
+```
+
