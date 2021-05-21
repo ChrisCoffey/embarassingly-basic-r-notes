@@ -78,4 +78,18 @@ ggplot(gapminder2007, mapping=aes(x=continent, y= lifeExp)) +
 ggplot(gapminder2007, mapping=aes(x=continent, y=gdpPercap)) + 
   geom_boxplot()
 ```
+Regresson tables use the first category as the intercept. that's illustrated in the following two regresson tables. The estimated values for any given category are the `intercept + estimate`. Mathematically, this works by applying an indicator function to each pair of (coefficient, value).
+```{r}
+gdp_model <-lm(gdpPercap ~ continent, gapminder2007)
+get_regression_table(gdp_model)
+
+life_model <- lm(lifeExp ~ continent, gapminder2007)
+get_regression_table(life_model)
+```
+What about computing residuals directly?
+```{r}
+get_regression_points(model) %>%
+  mutate(sq_resid = residual^2) %>%
+  summarise(summed_residual = sum(sq_resid))
+```
 
