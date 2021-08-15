@@ -1,0 +1,40 @@
+---
+title: "Multiple Regression"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(moderndive)
+library(skimr)
+library(ISLR)
+
+evals_ch6 <- evals %>%
+  select(ID, score, age, gender)
+```
+
+EDA on the stripped down dataset. Although, is there more sophisticated EDA to perform than running `skim`? It certainly goes a long way to describing the shape of the data.
+```{r}
+skim(evals_ch6)
+evals_ch6 %>%
+  get_correlation(score ~ age)
+
+ggplot(evals_ch6, mapping=aes(x=age, y=score, color=gender)) +
+  geom_point() +
+  labs(x="Age",
+       y="Score",
+       color="Gender") +
+  geom_smooth(method="lm", se=FALSE)
+```
+Notably, the score for female professors appears higher the younger they are. Their score also seems to decay more rapidly with age than the score for men does. Also, there are almost no femal faculty over 60 years old, which probably pulls down the overall score for women a bit.
+
+Digging deeper by creating a regression table:
+```{r}
+ag_model <- lm(score ~ age * gender, data=evals_ch6)
+get_regression_table(ag_model)
+
+ag_model2 <- lm(score ~ gender * age, data=evals_ch6)
+get_regression_table(ag_model2)
+```
+
+
